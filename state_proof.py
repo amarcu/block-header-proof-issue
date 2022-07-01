@@ -10,11 +10,10 @@ from utils import normalize_bytes, normalize_address, normalize_int, decode_hex,
 BLOCK_HEADER_FIELDS = [
     "parentHash", "sha3Uncles", "miner", "stateRoot", "transactionsRoot",
     "receiptsRoot", "logsBloom", "difficulty", "number", "gasLimit",
-    "gasUsed", "timestamp", "extraData", "mixHash", "nonce" #,"baseFeePerGas"
+    "gasUsed", "timestamp", "extraData", "mixHash", "nonce", "baseFeePerGas"
 ]
 
-BLOCK_HEADER_FILES_ADDED = ["baseFeePerGas"]
-
+INT_FIELDS = ["gasLimit","gasUsed","timestamp","difficulty","number"]
 
 def request_block_header(rpc_endpoint, block_number,london_fork):
     r = requests.post(rpc_endpoint, json={
@@ -27,10 +26,11 @@ def request_block_header(rpc_endpoint, block_number,london_fork):
     block_dict = get_json_rpc_result(r)
     block_number = normalize_int(block_dict["number"])
     block_header_fields = []
-    if london_fork:
-        block_header_fields = [normalize_bytes(block_dict[f]) for f in BLOCK_HEADER_FIELDS + BLOCK_HEADER_FILES_ADDED]
-    else:
-        block_header_fields = [normalize_bytes(block_dict[f]) for f in BLOCK_HEADER_FIELDS]
+    for f in BLOCK_HEADER_FIELDS:
+        if f in INT_FIELDS:
+            block_header_fields.append(normalize_int(block_dict[f]))
+        else:
+            block_header_fields.append(normalize_bytes(block_dict[f]))
 
     retrieved_header_hash = block_dict["hash"]
     print(f"retrieved hash   {retrieved_header_hash}")
